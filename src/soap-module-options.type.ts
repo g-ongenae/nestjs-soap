@@ -1,24 +1,41 @@
 import { IOptions } from 'soap';
 import { ModuleMetadata, Scope, Type } from '@nestjs/common/interfaces';
-import { BASIC_AUTH, WSSECURITY_AUTH, WSSECURITYCERT_AUTH } from './soap-constants';
+import { BASIC_AUTH, WSSECURITY_AUTH, WSSECURITYCERT_AUTH, CLIENTSSLSECURITY_AUTH } from './soap-constants';
 
 export { Client, IOptions } from 'soap';
 
 interface Auth {
-  type: typeof BASIC_AUTH | typeof WSSECURITY_AUTH | typeof WSSECURITYCERT_AUTH;
   username: string;
   password: string;
 }
 
-export interface BasicAuth extends Auth { }
+export interface BasicAuth extends Auth {
+  type: typeof BASIC_AUTH;
+}
 
 export interface WSSecurityAuth extends Auth {
+  type: typeof WSSECURITY_AUTH;
   options?: WSSecurityOptions
 }
 
-export interface WSSecurityCertAuth extends Omit<WSSecurityAuth, 'username'> {
+export interface WSSecurityCertAuth extends Omit<WSSecurityAuth, 'username' | 'type'> {
+  type: typeof WSSECURITYCERT_AUTH;
   privateKey: string | Buffer;
   publicKey: string | Buffer;
+}
+
+export interface ClientSSLSecurityAuth {
+  type: typeof CLIENTSSLSECURITY_AUTH;
+  key: string | Buffer;
+  cert: string | Buffer;
+  ca?: string | Buffer;
+  options?: {
+    strictSSL?: boolean;
+    rejectUnauthorized?: boolean;
+    hostname?: string;
+    secureOptions?: string;
+    forever?: boolean;
+  }
 }
 
 export type WSSecurityOptions = {
@@ -33,7 +50,7 @@ export type WSSecurityOptions = {
 export type SoapModuleOptions = {
   uri: string;
   clientName: string;
-  auth?: BasicAuth | WSSecurityAuth | WSSecurityCertAuth;
+  auth?: BasicAuth | WSSecurityAuth | WSSecurityCertAuth | ClientSSLSecurityAuth;
   clientOptions?: IOptions;
 };
 
