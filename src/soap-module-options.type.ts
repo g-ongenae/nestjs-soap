@@ -16,10 +16,9 @@ export interface WSSecurityAuth extends Auth {
   options?: WSSecurityOptions
 }
 
-export interface WSSecurityCertAuth extends WSSecurityAuth {
+export interface WSSecurityCertAuth extends Omit<WSSecurityAuth, 'username'> {
   privateKey: string;
   publicKey: string;
-  username: undefined;
 }
 
 export type WSSecurityOptions = {
