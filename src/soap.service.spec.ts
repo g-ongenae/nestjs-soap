@@ -1,10 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { SoapService } from './soap.service';
 import { mocked } from 'ts-jest/utils';
-import { BasicAuthSecurity, Client, createClientAsync, WSSecurity } from 'soap';
+import { BasicAuthSecurity, Client, createClientAsync, WSSecurity, WSSecurityCert } from 'soap';
 import { MaybeMocked } from 'ts-jest/dist/utils/testing';
 import { SoapModuleOptions } from 'src';
-import { BASIC_AUTH, SOAP_MODULE_OPTIONS, WSSECURITY_AUTH } from './soap-constants';
+import { BASIC_AUTH, SOAP_MODULE_OPTIONS, WSSECURITYCERT_AUTH, WSSECURITY_AUTH } from './soap-constants';
 
 const soapModuleOptionsMock = {
   uri: 'some-uri',
@@ -111,6 +111,19 @@ describe('SoapService', () => {
       await service.createAsyncClient();
 
       expect(clientMock.setSecurity).toBeCalledWith(expect.any(WSSecurity));
+      
+      soapModuleOptionsMock.auth = auth;
+    });
+
+    it('Should use WSSecurityCert if auth.type is WSSECURITYCERT_AUTH', async () => {
+      const auth = soapModuleOptionsMock.auth;
+      service.soapModuleOptions.auth.type = WSSECURITYCERT_AUTH;
+      
+      soapCreateClientAsyncMock.mockResolvedValue(clientMock);
+
+      await service.createAsyncClient();
+
+      expect(clientMock.setSecurity).toBeCalledWith(expect.any(WSSecurityCert));
       
       soapModuleOptionsMock.auth = auth;
     });

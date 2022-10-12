@@ -1,7 +1,29 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import { SoapModuleOptions, WSSecurityAuth } from './soap-module-options.type';
-import { SOAP_MODULE_OPTIONS, WSSECURITY_AUTH } from './soap-constants';
-import { BasicAuthSecurity, Client, createClientAsync, ISecurity, WSSecurity } from 'soap';
+import { BasicAuth, SoapModuleOptions, WSSecurityAuth, WSSecurityCertAuth } from './soap-module-options.type';
+import { BASIC_AUTH, SOAP_MODULE_OPTIONS, WSSECURITY_AUTH, WSSECURITYCERT_AUTH } from './soap-constants';
+import { BasicAuthSecurity, Client, createClientAsync, ISecurity, WSSecurity, WSSecurityCert } from 'soap';
+
+function createSecurity(auth: BasicAuth | WSSecurityAuth | WSSecurityCertAuth): ISecurity {
+  switch (auth.type) {
+    case BASIC_AUTH: {
+      const {username, password} = auth as BasicAuth;
+
+      return new BasicAuthSecurity(username, password);
+    }
+    case WSSECURITY_AUTH: {
+      const {username, password, options} = auth as WSSecurityAuth;
+
+      return new WSSecurity(username, password, options);
+    }
+    case WSSECURITYCERT_AUTH: {
+      const {options, password, privateKey, publicKey} = auth as WSSecurityCertAuth;
+
+      return new WSSecurityCert(privateKey, publicKey, password, options);
+    }
+    default:
+      throw new Error(`Invalid Auth type: ${auth.type}`);
+  }
+}
 
 @Injectable()
 export class SoapService {
@@ -14,13 +36,7 @@ export class SoapService {
       const client = await createClientAsync(options.uri, options.clientOptions);
 
       if (!options.auth) return client;
-
-      const {username, password} = options.auth;
-
-      const authMethod: ISecurity = options.auth.type === WSSECURITY_AUTH
-        ? new WSSecurity(username, password, (options.auth as WSSecurityAuth).options)
-        : new BasicAuthSecurity(username, password);
-
+      const authMethod: ISecurity = createSecurity(options.auth);
       client.setSecurity(authMethod);
 
       return client;
