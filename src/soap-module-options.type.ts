@@ -17,8 +17,8 @@ export interface WSSecurityAuth extends Auth {
 }
 
 export interface WSSecurityCertAuth extends Omit<WSSecurityAuth, 'username'> {
-  privateKey: string;
-  publicKey: string;
+  privateKey: string | Buffer;
+  publicKey: string | Buffer;
 }
 
 export type WSSecurityOptions = {
@@ -33,7 +33,7 @@ export type WSSecurityOptions = {
 export type SoapModuleOptions = {
   uri: string;
   clientName: string;
-  auth?: BasicAuth | WSSecurityAuth;
+  auth?: BasicAuth | WSSecurityAuth | WSSecurityCertAuth;
   clientOptions?: IOptions;
 };
 
